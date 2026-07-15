@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Neon Arcade</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --cyan:   #0ff;
+    --magenta:#f0f;
+    --orange: #f80;
+    --white:  #fff;
+    --bg:     #000;
+    --card-bg:#080808;
+    --border: #1a1a2e;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--white);
+    font-family: "Courier New", Courier, monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── Scanline overlay ── */
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.08) 2px,
+      rgba(0,0,0,0.08) 4px
+    );
+    pointer-events: none;
+    z-index: 999;
+  }
+
+  /* ── Header ── */
+  header {
+    text-align: center;
+    padding: 56px 20px 40px;
+    position: relative;
+  }
+
+  .logo {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 16px;
+    letter-spacing: 0.15em;
+    user-select: none;
+  }
+
+  .logo-neon {
+    font-size: 72px;
+    font-weight: 900;
+    color: var(--cyan);
+    text-shadow: 0 0 8px var(--cyan), 0 0 28px #0cf, 0 0 70px #08f;
+    animation: flicker 7s infinite;
+  }
+
+  .logo-arcade {
+    font-size: 56px;
+    font-weight: 900;
+    color: var(--white);
+    text-shadow: 0 0 6px var(--white), 0 0 22px var(--magenta), 0 0 55px #c0f;
+    transform: skewX(-5deg);
+    display: inline-block;
+  }
+
+  .tagline {
+    margin-top: 14px;
+    font-size: 13px;
+    letter-spacing: 0.3em;
+    color: #555;
+    text-transform: uppercase;
+  }
+
+  @keyframes flicker {
+    0%,19%,21%,23%,25%,54%,56%,100% { opacity: 1; }
+    20%,24%,55% { opacity: 0.7; }
+  }
+
+  /* ── Grid ── */
+  main {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 20px 24px 80px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 32px;
+  }
+
+  /* ── Game Card ── */
+  .card {
+    background: var(--card-bg);
+    border: 1px solid #1c1c2e;
+    border-radius: 4px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    position: relative;
+  }
+
+  .card:hover {
+    border-color: var(--card-accent);
+    box-shadow: 0 0 20px color-mix(in srgb, var(--card-accent) 30%, transparent),
+                0 0 60px color-mix(in srgb, var(--card-accent) 10%, transparent);
+  }
+
+  /* ── Preview area ── */
+  .preview {
+    height: 180px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #050510;
+  }
+
+  .preview-title {
+    font-size: 28px;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    text-shadow: 0 0 10px var(--card-accent), 0 0 30px var(--card-accent);
+    color: var(--card-accent);
+    z-index: 1;
+    user-select: none;
+    animation: pulse 3s ease-in-out infinite;
+  }
+
+  @keyframes pulse {
+    0%,100% { text-shadow: 0 0 10px var(--card-accent), 0 0 30px var(--card-accent); }
+    50%     { text-shadow: 0 0 18px var(--card-accent), 0 0 60px var(--card-accent), 0 0 100px var(--card-accent); }
+  }
+
+  /* grid lines in preview bg */
+  .preview::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(color-mix(in srgb, var(--card-accent) 6%, transparent) 1px, transparent 1px),
+      linear-gradient(90deg, color-mix(in srgb, var(--card-accent) 6%, transparent) 1px, transparent 1px);
+    background-size: 32px 32px;
+    animation: gridscroll 8s linear infinite;
+  }
+
+  @keyframes gridscroll {
+    from { background-position: 0 0; }
+    to   { background-position: 32px 32px; }
+  }
+
+  /* ── Card body ── */
+  .card-body {
+    padding: 20px 22px 22px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .card-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--card-accent);
+    text-shadow: 0 0 8px var(--card-accent);
+    letter-spacing: 0.08em;
+  }
+
+  .card-desc {
+    font-size: 12px;
+    line-height: 1.7;
+    color: #888;
+    flex: 1;
+  }
+
+  .tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 4px;
+  }
+
+  .tag {
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    padding: 3px 8px;
+    border: 1px solid color-mix(in srgb, var(--card-accent) 40%, transparent);
+    color: color-mix(in srgb, var(--card-accent) 70%, transparent);
+    border-radius: 2px;
+    text-transform: uppercase;
+  }
+
+  /* ── Play button ── */
+  .play-btn {
+    display: block;
+    margin-top: 18px;
+    padding: 11px 0;
+    text-align: center;
+    text-decoration: none;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--bg);
+    background: var(--card-accent);
+    border: none;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: opacity 0.15s, box-shadow 0.15s;
+    box-shadow: 0 0 14px color-mix(in srgb, var(--card-accent) 50%, transparent);
+  }
+
+  .play-btn:hover {
+    opacity: 0.85;
+    box-shadow: 0 0 28px color-mix(in srgb, var(--card-accent) 80%, transparent);
+  }
+
+  /* ── Per-game accent colours ── */
+  .card[data-game="fps"]    { --card-accent: var(--cyan); }
+  .card[data-game="driver"] { --card-accent: #a0f; }
+
+  /* ── Footer ── */
+  footer {
+    text-align: center;
+    padding: 20px;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: #333;
+    text-transform: uppercase;
+    border-top: 1px solid #111;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <span class="logo-neon">NEON</span>
+    <span class="logo-arcade">ARCADE</span>
+  </div>
+  <p class="tagline">Select a game &mdash; insert coin</p>
+</header>
+
+<main>
+
+  <!-- Neon Breach FPS -->
+  <article class="card" data-game="fps">
+    <div class="preview">
+      <span class="preview-title">NEON BREACH</span>
+    </div>
+    <div class="card-body">
+      <h2 class="card-title">Neon Breach FPS</h2>
+      <p class="card-desc">
+        First-person shooter with procedurally generated maps and enemy waves.
+        Raycasting renderer, three weapon types, and escalating enemy tiers.
+        Survive as long as you can and beat your high score.
+      </p>
+      <div class="tags">
+        <span class="tag">FPS</span>
+        <span class="tag">Procedural</span>
+        <span class="tag">Raycasting</span>
+        <span class="tag">Browser</span>
+      </div>
+      <a class="play-btn" href="https://kevinm2k.github.io/neon-breach-fps/" target="_blank" rel="noopener">
+        ▶ &nbsp; Play Now
+      </a>
+    </div>
+  </article>
+
+  <!-- Neon Driver -->
+  <article class="card" data-game="driver">
+    <div class="preview">
+      <span class="preview-title">NEON DRIVER</span>
+    </div>
+    <div class="card-body">
+      <h2 class="card-title">Neon Driver</h2>
+      <p class="card-desc">
+        High-speed endless stunt racer with 16 unlockable cars, each with
+        unique perks. Perform flips, collect coins, and upgrade your ride.
+        Daily rewards and procedurally generated terrain keep every run fresh.
+      </p>
+      <div class="tags">
+        <span class="tag">Racing</span>
+        <span class="tag">Stunt</span>
+        <span class="tag">Endless</span>
+        <span class="tag">Browser</span>
+      </div>
+      <a class="play-btn" href="https://kevinm2k.github.io/neon-driver/" target="_blank" rel="noopener">
+        ▶ &nbsp; Play Now
+      </a>
+    </div>
+  </article>
+
+</main>
+
+<footer>
+  &copy; 2026 Neon Arcade &mdash; All games run entirely in your browser
+</footer>
+
+</body>
+</html>
